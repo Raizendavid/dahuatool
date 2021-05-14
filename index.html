@@ -1,0 +1,1124 @@
+<!--
+  Dahua tool v.1.4
+  - Multiple fields capability for model/serial/firmware added
+  - Fixed unable to add text at beginning of fields
+  Dahua tool v.1.3
+  - Autocomplete for model # and distributor trial
+  - Models from 
+    * https://dahuawiki.com/cameras 
+    * https://dahuawiki.com/recorders 
+    * https://dahuawiki.com/kits 
+    * https://dahuawiki.com/Internal:ADT#DVRs
+  - Flir Models from Digimerge website
+  Dahua tool v.1.2
+  - Now templates don't overwrite fields they don't have to
+  - Added Email notifications setup template
+  Dahua tool v.1.1
+  - Fixed scrollbar not showing on higher zooms
+  - Added links for templates on the sources template
+  Dahua tool v.1.0
+  - Added sources field
+  - Added validation to source field
+  - Fixed issue with return carriages on several fields
+  Dahua tool v.0.9
+  - Separated code in files
+  - Corrected templates
+  - Fixed bug with error field not displaying
+  - Separation of onload from html file
+  Dahua tool v.0.8
+  - All caps for serial/model
+  - Fix reset function issues
+  - Remove extra templates
+  - The where fields taking the whole width when collapsed
+  Dahua tool v.0.7
+  - Added copy button and added a modal to the reset button
+  - Fixed reset function
+  Dahua tool v 0.6
+  - Added Template interface
+  - Added modal to select between diferent recorder interfaces
+  - Fixed bugs and fixed appearance issues
+  - Added more templates
+  + Lots of repeated code, not the best standards and little MVC separation. Works somehow. Sorry future me.
+  Dahua tool v 0.5
+  - Added troubleshooting box
+  - Changed layout based on team's feedback
+  - Added groundwork for templates
+  - Missing selector for templates now
+  - Issue with the onclick event for the agent dropdown
+-->
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Dahua Tool</title>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand navbar-light fixed-top">
+    <a class="navbar-brand" href="#"><img
+        src="https://us.dahuasecurity.com/wp-content/uploads/2017/08/Dahua-LOGO_black_with_red_D.png"
+        style="height:35px; margin:0"></a>
+    <div>
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#" data-toggle="modal" data-target="#resetModal">Reset</a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="#" onClick="copyTextArea()">Copy</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="dropdownWizard" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">Your Name</a>
+          <div class="dropdown-menu" aria-labelledby="dropdown01" id="dropdownNameList">
+            <a class="dropdown-item" href="#">Your Name Here</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Anthony R</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Armando A</a>            
+            <a class="dropdown-item" href="#" onClick="setName(this)">Christian B</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Daniel C</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">David Y</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Cesar T</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Gabriel V</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Harold C</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Isabella C</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Jhon R</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Jimmy G</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Juan Felipe C</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Juan Sebastian P</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Julian R</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Santiago P</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Sebastian G</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Sebastian L</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Angel C</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Brayan D</a>  
+            <a class="dropdown-item" href="#" onClick="setName(this)">Christian Z</a>           
+            <a class="dropdown-item" href="#" onClick="setName(this)">Daniel B</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Camilo V</a>
+            <a class="dropdown-item" href="#" onClick="setName(this)">Gabriel B</a> 
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="templateList" data-toggle="dropdown" aria-haspopup="true"
+            aria-expanded="false">Templates</a>
+          <div class="dropdown-menu" aria-labelledby="dropdown01" id="dropdownNameList">
+            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#blackOrBlueModal">P2P setup</a>
+            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#blackOrBlueModal1">Motion Recording</a>
+            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#emailModal">Email Notification</a>
+            <a class="dropdown-item" href="#" onclick="passwordReset()">Password Reset</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </nav>
+  <main role=" main" class="container-fluid">
+    <form method="POST" id="dataForm">
+      <div class="row" id="mainrow">
+        <div id="workarea" class="col-sm-6">
+          <div class="form-group row">
+            <label for="inputProblem"
+              class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Problem</label>
+            <div class="col-sm-10">
+              <input type="text" class="form-control form-control-sm" id="inputProblem" placeholder="Problem"
+                onInput="updateTextarea(this)">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputModel" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Model</label>
+            <div class="col-sm-10 col-xs-10 flex">
+              <input list="deviceList" class="form-control form-control-sm uppercase" id="inputModel" placeholder="Model Number"
+                onInput="updateTextarea(this)">
+              <button type="button" class="btn-sm btn-primary btn-addproduct" id="addNewFields"
+                onclick="addFields()">+</button>
+              <button type="button" class="btn-sm btn-primary btn-addproduct" id="removeField"
+              data-toggle="modal" data-target="#removeFieldModal">-</button>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputSerial" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Serial</label>
+            <div class="col-sm-10 col-xs-12 flex">
+              <input type="text" class="form-control form-control-sm uppercase" id="inputSerial" placeholder="Serial Number"
+                onInput="updateTextarea(this)">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputDistributor"
+              class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Distributor</label>
+            <div class="col-sm-10 col-xs-12">
+              <input list="distributorList" class="form-control form-control-sm" id="inputDistributor"
+                placeholder="Distributor" onInput="updateTextarea(this)">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputFirmware" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Firmware</label>
+            <div class="col-sm-10 col-xs-12 flex">
+              <input type="text" class="form-control form-control-sm" id="inputFirmware" placeholder="Firmware"
+                onInput="updateTextarea(this)" onKeyUp="switchCase(this)">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="selectFirst" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">First
+              time?</label>
+            <div class="col-sm-10 col-xs-12">
+              <select class="form-control form-control-sm mr-sm-2" id="selectFirst" placeholder="First time happening?"
+                onChange="updateTextarea(this)">
+                <option value="" disabled selected>First time happenning?</option>
+                <option value="Yes">Yes
+                  </a>
+                <option value="No">No</a>
+                <option value="na">Not asked</a>
+              </select>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="selectBefore" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Working
+              before?</label>
+            <div class="col-sm-10 col-xs-12">
+              <select class="form-control form-control-sm mr-sm-2" id="selectBefore"
+                placeholder="Was it working before?" onChange="updateTextarea(this)">
+                <option value="" disabled selected>Was it working before?</option>
+                <option value="Yes">Yes</a>
+                <option value="No">No</a>
+                <option value="na">Not asked</a>
+              </select>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputFrequency"
+              class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Frequency</label>
+            <div class="col-sm-10 col-xs-12">
+              <input type="text" class="form-control form-control-sm" id="inputFrequency"
+                placeholder="Frequency and conditions" onInput="updateTextarea(this)">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputError" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Error</label>
+            <div class="col-sm-10 col-xs-12">
+              <input type="text" class="form-control form-control-sm" id="inputError"
+                placeholder="Exact error if possible" onInput="updateTextarea(this)">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputSoftware"
+              class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Software</label>
+            <div class="col-sm-10 col-xs-12">
+              <input type="text" class="form-control form-control-sm" id="inputSoftware" placeholder="App/Software used"
+                onInput="updateTextarea(this)">
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="selectWhere" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Happens
+              where?</label>
+            <div id="divWhere1" class="col-sm-5">
+              <select class="form-control form-control-sm" id="selectWhere" onChange="updateTextarea(this)">
+                <option value="" disabled selected>Happens on</option>
+                <option value="Monitor">Monitor</a>
+                <option value="PC">PC</a>
+                <option value="Mac">Mac</a>
+                <option value="Phone">Phone</a>
+                <option value="Tablet">Tablet</a>
+                <option value="na">NA</a>
+              </select>
+            </div>
+            <div id="divWhere2" class="col-sm-5">
+              <select class="form-control form-control-sm" id="selectWhere2" onChange="updateTextarea(this)">
+                <option value="" disabled selected>Happens on</option>
+                <option value="Monitor">Monitor</a>
+                <option value="PC">PC</a>
+                <option value="Mac">Mac</a>
+                <option value="Phone">Phone</a>
+                <option value="Tablet">Tablet</a>
+                <option value="na">NA</a>
+              </select>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="selectCompatible" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Units
+              compatible?</label>
+            <div class="col-sm-10 col-xs-12">
+              <select class="form-control form-control-sm mr-sm-2" id="selectCompatible" onInput="updateTextarea(this)">
+                <option value="" disabled selected>Are the units compatible?</option>
+                <option value="Yes">Yes</a>
+                <option value="No">No</a>
+                <option value="na">Not asked</a>
+              </select>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputSources"
+              class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Sources</label>
+            <div class="col-sm-10">
+              <textarea class="form-control form-control-sm" id="inputSources" rows="2" placeholder="Sources"
+                onInput="updateTextarea(this)"></textarea>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputTx"
+              class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Troubleshoot</label>
+            <div class="col-sm-10">
+              <textarea class="form-control form-control-sm" id="inputTx" rows="14" placeholder="Troubleshoot"
+                onInput="updateTextarea(this)"></textarea>
+            </div>
+          </div>
+          <div class="form-group row">
+            <label for="inputMissing" class="col-sm-2 col-form-label col-form-label-sm d-none d-sm-block">Missing
+              steps</label>
+            <div class="col-sm-10">
+              <textarea class="form-control form-control-sm" id="inputMissing" rows="2" placeholder="Missing steps"
+                onInput="updateTextarea(this)"></textarea>
+            </div>
+          </div>
+        </div>
+        <div id="textarea" class="col-sm-6">
+          <textarea class="form-control form-control-sm" style="width:100%;height:100%;" id="mainText"
+            rows="12"></textarea>
+        </div>
+        <!-- Modals -->
+        <div class="modal fade" id="blackOrBlueModal" tabindex="-1" role="dialog" aria-labelledby="blackOrBlueModal"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="blackOrBlueModal">Black or Blue interface?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                  onClick="P2PSetup('Black')">Black</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                  onClick="P2PSetup('Blue')">Blue</button>
+              </div>
+              <div class="modal-footer">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade" id="blackOrBlueModal1" tabindex="-1" role="dialog" aria-labelledby="blackOrBlueModal1"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="blackOrBlueModal1">Black or Blue interface?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                  onClick="motionRecording('Black')">Black</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                  onClick="motionRecording('Blue')">Blue</button>
+              </div>
+              <div class="modal-footer">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade" id="emailModal" tabindex="-1" role="dialog" aria-labelledby="emailModal"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="emailModal">Choose the interface:</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                  onClick="emailNotifications('Black')">Black</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                  onClick="emailNotifications('Blue')">Blue</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                  onClick="emailNotifications('Web')">Web
+                  Interface</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                  onClick="emailNotifications('SmartPSS')">SmartPSS</button>
+              </div>
+              <div class="modal-footer">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade" id="resetModal" tabindex="-1" role="dialog" aria-labelledby="resetModal"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="resetModal">Do you want to reset?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onClick="formReset()">Reset</button>
+              </div>
+              <div class="modal-footer">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade" id="removeFieldModal" tabindex="-1" role="dialog" aria-labelledby="removeFieldModal"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="removeFieldModal">Do you want to remove the last field?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal" onClick="removeLastField()">Remove</button>
+              </div>
+              <div class="modal-footer">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal fade" id="checkVersion" tabindex="-1" role="dialog" aria-labelledby="checkVersion"
+          aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="checkVersion">New Dahua Tool version</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <h6>Dahua tool v.1.4</h6>
+                <ul>
+                  <li>Multiple fields capability for model/serial/firmware added</li>
+                  <li>Fixed unable to add text at beginning of fields</li>                    
+                </ul>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              </div>
+              <div class="modal-footer">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </main>
+  <!-- Lists -->
+  <datalist id="deviceList">
+    <option value="D3216">
+    <option value="D3304">
+    <option value="D3308">
+    <option value="D3316">
+    <option value="D3332">
+    <option value="DNB13TF2">
+    <option value="DNR104">
+    <option value="DNR114S">
+    <option value="DNR114SP">
+    <option value="DNR118S">
+    <option value="DNR208">
+    <option value="DNR214">
+    <option value="DNR216">
+    <option value="DNR218">
+    <option value="DNR316">
+    <option value="DNR408">
+    <option value="DNR408P">
+    <option value="DNR408S">
+    <option value="DNR416">
+    <option value="DNR416P">
+    <option value="DNR416RS">
+    <option value="DNR432S">
+    <option value="DNR516">
+    <option value="DNR516P">
+    <option value="DNR516S">
+    <option value="DNR532">
+    <option value="DNR532P">
+    <option value="DNR532S">
+    <option value="DNR708">
+    <option value="DNR708B">
+    <option value="DNR716">
+    <option value="DNR716B">
+    <option value="DNR724">
+    <option value="DNR732">
+    <option value="DNR732B">
+    <option value="DNR816">
+    <option value="DNR816B">
+    <option value="DNR832">
+    <option value="DNR832B">
+    <option value="DNR864B">
+    <option value="M3104">
+    <option value="M3104ES">
+    <option value="M3104ESP">
+    <option value="M3104EX">
+    <option value="M3108">
+    <option value="M3108ES">
+    <option value="M3108ESP">
+    <option value="M3108EX">
+    <option value="M3116ES">
+    <option value="M3116ES3">
+    <option value="M3116ESP">
+    <option value="M3116EX">
+    <option value="M3204">
+    <option value="M3204P">
+    <option value="M3208">
+    <option value="M3208P">
+    <option value="M3216">
+    <option value="M3216P">
+    <option value="M4108">
+    <option value="M4108EX">
+    <option value="M4116">
+    <option value="M4116EX">
+    <option value="M4204">
+    <option value="M5104">
+    <option value="M5108">
+    <option value="M5116">
+    <option value="M6108">
+    <option value="M6116">
+    <option value="N253B8">
+    <option value="N357BL8">
+    <option value="N133-233 Bullets">
+    <option value="N237BE">
+    <option value="N243BW2">
+    <option value="N243BW4">
+    <option value="N247B3">
+    <option value="N347BW4">
+    <option value="N357B8">
+    <option value="N437BDL/P">
+    <option value="N437BEW/P">
+    <option value="P143B4">
+    <option value="PB133F">
+    <option value="N133-233 Domes">
+    <option value="N233VE-N233VEP">
+    <option value="N243EW2">
+    <option value="N243EW4">
+    <option value="N243MW2">
+    <option value="N243VW4">
+    <option value="N247V3">
+    <option value="N253EA8/N253EA8BK">
+    <option value="N253V8">
+    <option value="N258F5">
+    <option value="N347VW4">
+    <option value="N357EA8">
+    <option value="N357V8">
+    <option value="N437VDL/P">
+    <option value="N437VEW/P">
+    <option value="P143E4">
+    <option value="PE133E">
+    <option value="PE133F">
+    <option value="N233ZC/P - N233ZD/P">
+    <option value="N336ZD1">
+    <option value="N336ZD3 - N336ZD3P">
+    <option value="N346ZW124">
+    <option value="N446ZC302">
+    <option value="M3100E - M3100EP Series">
+    <option value="M4100 - Series">
+    <option value="M4200 - M4200P Series">
+    <option value="M4400 Series">
+    <option value="M5100 Series">
+    <option value="M6100 - 6100P Series">
+    <option value="C133BD">
+    <option value="C134BD">
+    <option value="C233BC">
+    <option value="C233BD">
+    <option value="C237BC - C237BCP">
+    <option value="C237BD - C237BDP - C237BD1 - C237BD1P">
+    <option value="C243BW2">
+    <option value="C347BC2">
+    <option value="C133ED - C133EDP">
+    <option value="C134ED">
+    <option value="C233EC - C233ECP">
+    <option value="C234EC">
+    <option value="C237EC - C237ECP">
+    <option value="C237VC/P - C237VD/P">
+    <option value="C243EW2 Series">
+    <option value="C243MT2">
+    <option value="C247EW2">
+    <option value="C347VC2">
+    <option value="C357VW4">
+    <option value="ME323">
+    <option value="ME343">
+    <option value="ME343S">
+    <option value="ME363">
+    <option value="ME373A">
+    <option value="C346ZC252">
+    <option value="C336ZC1 - C336ZC1P">
+    <option value="DN1142E43 (Kit)">
+    <option value="DN1142E44 (Kit)">
+    <option value="DN1181E63 (Kit)">
+    <option value="DN2181E63 Series (Kit)">
+    <option value="DN4083B84 Series (Kit)">
+    <option value="DN4083E64 Series (Kit)">
+    <option value="DN408P28 - DN408P28P Series (Kit)">
+    <option value="DN4163E12 Series (Kit)">
+    <option value="DN7164E12 Series (Kit)">
+    <option value="IP N16D44K84 (Kit)">
+    <option value="IP N4A143 (Kit)">
+    <option value="IP N4A21K33 (Kit)">
+    <option value="IP N8A32K44 (Kit)">
+    <option value="M1644K84 (Kit)">
+    <option value="M3104E1A4 - M3104E1A4P (Kit)">
+    <option value="M3104E1B4 (Kit)">
+    <option value="M3104E2C4 - M3104E2C4P (Kit)">
+    <option value="M3108E3C8 - M3108E3C8P (Kit)">
+    <option value="M316E3C12 (Kit)">
+    <option value="M5104244 (Kit)">
+    <option value="M5108364 (Kit)">
+    <option value="M51164124 (Kit)">
+    <option value="M832K44 (Kit)">
+    <option value="DHI-NVR42A04-P">
+    <option value="DHI-NVR42A08-8P">
+    <option value="DHI-NVR42A16-16P">
+    <option value="DHI-NVR52A08-8P-4KS2">
+    <option value="DHI-NVR52A16-16P-4KS2">
+    <option value="DHI-NVR54A16-16P-4KS2">
+    <option value="DHI-NVR58A16-16P-4KS2">
+    <option value="DHI-NVR58A32-4KS2">
+    <option value="DHI-NVR6A08-128-4KS2">
+    <option value="DHI-NVR6A08-32-4KS2">
+    <option value="DHI-NVR6A08-64-4KS2">
+    <option value="DHI-NVR6A16-128-4KS2">
+    <option value="DHI-NVR6A16DR-128-4KS2">
+    <option value="N41B1W">
+    <option value="N42B1P">
+    <option value="N42B2P">
+    <option value="N42B3P">
+    <option value="N52A4P">
+    <option value="N52B2P">
+    <option value="N52B3P">
+    <option value="N54A4P">
+    <option value="N54B3P">
+    <option value="NVR41A04HS-W-S2">
+    <option value="NVR724DR-256">
+    <option value="C52A1N">
+    <option value="C52A2N">
+    <option value="C52A3N">
+    <option value="DHI-HCVR51A04HE-S3">
+    <option value="DHI-HCVR51A08HE-S3">
+    <option value="DHI-HCVR51A16HE-S3">
+    <option value="DHI-HCVR52A16A-S3">
+    <option value="DHI-HCVR52A16AN-S3">
+    <option value="DHI-HCVR54A16L-V2">
+    <option value="DHI-HCVR58A32S-S2">
+    <option value="DHI-HCVR72A04A-S3">
+    <option value="DHI-HCVR72A08A-S3">
+    <option value="DHI-HCVR72A16A-S3">
+    <option value="DHI-HCVR74A16L">
+    <option value="DHI-HCVR78A16S">
+    <option value="DHI-HCVR82A08A-S3">
+    <option value="DHI-HCVR82A16A-S3">
+    <option value="DHI-HCVR84A16L-S3">
+    <option value="DHI-HCVR88A16S-S3">
+    <option value="X21A1E">
+    <option value="X21A2E">
+    <option value="X21A3E">
+    <option value="X22A3A">
+    <option value="X22A3N">
+    <option value="X24A3L">
+    <option value="X24A5L">
+    <option value="X28A5S">
+    <option value="X32A1A">
+    <option value="X32A2A">
+    <option value="X32A3A">
+    <option value="X34A2L">
+    <option value="X34A3L">
+    <option value="X38A3S">
+    <option value="X51A1E">
+    <option value="X51A2E">
+    <option value="X51A3E">
+    <option value="X52A3A">
+    <option value="X52A3N">
+    <option value="X54A5L">
+    <option value="X58A3S">
+    <option value="X58A5S">
+    <option value="X72A2A">
+    <option value="X72A3A">
+    <option value="X74A3L">
+    <option value="DHI-DSS7016DR">
+    <option value="DHI-DSS4004">
+    <option value="DHI-DSS7016DR-S2">
+    <option value="DHI-DSS4004-S2">
+    <option value="DHI-EVS7024S-R">
+    <option value="DHI-EVS5016S-R">
+    <option value="IVSS7008">
+    <option value="IVSS7016DR">
+    <option value="IVSS7024DR">
+    <option value="DHI-MCVR5104-GFW">
+    <option value="DHI-MCVR6208-G">
+    <option value="DHI-NVR0404MF-G M12">
+    <option value="DHI-NVR0404MF-GFW M12">
+    <option value="DHI-NVR0404MF-GFW RJ45">
+    <option value="DHI-NVR0804MF-G M12">
+    <option value="DHI-NVR0804MF-GFW M12">
+    <option value="DHI-NVR0804MF-GFW RJ45">
+    <option value="C542E42 (Kit)">
+    <option value="C544E42 (Kit)">
+    <option value="C7165E124 (Kit)">
+    <option value="C7168E124 (Kit)">
+    <option value="C785E63 (Kit)">
+    <option value="C788E63 (Kit)">
+    <option value="N444E42 (Kit)">
+    <option value="N448D42 (Kit)">
+    <option value="N484E62 (Kit)">
+    <option value="N488D63 (Kit)">
+    <option value="N5164E124 (Kit)">
+    <option value="N5168D124 (Kit)">
+    <option value="N41B1P2">
+    <option value="N41B2P2">
+    <option value="X51A1H2">
+    <option value="X71A1H2">
+    <option value="X72A2A3">
+    <option value="X72A3A4">
+    <option value="N24CG52">
+    <option value="N28BB7Z">
+    <option value="N28BL7Z">
+    <option value="NK8BA4">
+    <option value="NK8BB7Z">
+    <option value="NK8BL7Z">
+    <option value="N68BB7Z">
+    <option value="N68BL7Z">
+    <option value="N45BB5Z">
+    <option value="N45CB5Z">
+    <option value="N25BL5Z">
+    <option value="N25CL5Z">
+    <option value="N45BL5Z">
+    <option value="N45CL5Z">
+    <option value="N45BA5">
+    <option value="N25BA5">
+    <option value="N85CM5">
+    <option value="N85CL5">
+    <option value="N85CB5">
+    <option value="N65CB5Z">
+    <option value="N65CL5Z">
+    <option value="N45CL5Z-B">
+    <option value="N52BF3Z">
+    <option value="N52BM3Z">
+    <option value="N51BD22">
+    <option value="N51BD23">
+    <option value="N51BL22">
+    <option value="N51BL23">
+    <option value="N51BI22">
+    <option value="N51BI23">
+    <option value="N41BD22">
+    <option value="N41BK22">
+    <option value="DH-IPC-HDBW13A0EN-0280B">
+    <option value="DH-IPC-HDBW13A0EN-0360B">
+    <option value="DH-IPC-HDBW21A0RN-ZS">
+    <option value="DH-IPC-HDBW23A0RN-ZS">
+    <option value="DH-IPC-HDBW4231FN-E2-M">
+    <option value="DH-IPC-HDBW4239RN-ASE">
+    <option value="DH-IPC-HDBW42A1EN">
+    <option value="DH-IPC-HDBW42A1FN-AS">
+    <option value="DH-IPC-HDBW4421EN">
+    <option value="DH-IPC-HDBW44A1FN">
+    <option value="DH-IPC-HDBW44A1FN-AS">
+    <option value="DH-IPC-HDBW52A1EN-Z">
+    <option value="DH-IPC-HDBW54A1EN-Z">
+    <option value="DH-IPC-HDBW5831EN-Z5E">
+    <option value="DH-IPC-HDBW82A1EN-Z">
+    <option value="DH-IPC-HDBW83A1EN-Z">
+    <option value="DH-IPC-HDW13A0SN-0280B">
+    <option value="DH-IPC-HDW13A0SN-0360B">
+    <option value="DH-IPC-HDW23A0RN-ZS">
+    <option value="DH-IPC-HDW42A1EN">
+    <option value="DH-IPC-HDW42A1MN">
+    <option value="DH-IPC-HDW44A1EN">
+    <option value="DH-IPC-HDW44A1MN">
+    <option value="DH-IPC-HDW8341XN-3D">
+    <option value="DH-IPC-HF8242FN-FR">
+    <option value="DH-IPC-HF8835FN">
+    <option value="DH-IPC-HFW13A0SN-0280B">
+    <option value="DH-IPC-HFW13A0SN-0360B">
+    <option value="DH-IPC-HFW13A0SN-0600B">
+    <option value="DH-IPC-HFW21A0RN-ZS">
+    <option value="DH-IPC-HFW23A0RN-ZS">
+    <option value="DH-IPC-HFW4239TN-ASE">
+    <option value="DH-IPC-HFW42A1EN">
+    <option value="DH-IPC-HFW42A1SN">
+    <option value="DH-IPC-HFW44A1EN">
+    <option value="DH-IPC-HFW44A1SN">
+    <option value="DH-IPC-HFW52A1EN-Z">
+    <option value="DH-IPC-HFW54A1EN-Z">
+    <option value="DH-IPC-HFW5831EN-Z5E">
+    <option value="DH-IPC-HFW82A1EN-Z">
+    <option value="DH-IPC-HFW83A1EN-Z">
+    <option value="DH-IPC-PDBW5831N-B360">
+    <option value="DH-IPC-PDBW8800N-A180">
+    <option value="DH-IPC-PFW8601N-H-A180">
+    <option value="DH-IPC-PFW8800N-A180">
+    <option value="DH-PSD81602N-A360">
+    <option value="N24BN52">
+    <option value="N24CB33">
+    <option value="N24CL52">
+    <option value="N25CB5Z">
+    <option value="N41BD12-W">
+    <option value="N41BL12-W">
+    <option value="N44BN52">
+    <option value="N44CB33">
+    <option value="N44CG52">
+    <option value="N44CG52-B">
+    <option value="N44CG53">
+    <option value="N44CL52">
+    <option value="N44CL53">
+    <option value="N55BS5">
+    <option value="N84CB34">
+    <option value="N84CG52">
+    <option value="N84CG54">
+    <option value="N84CL52">
+    <option value="N84CL54">
+    <option value="DH-SD6AEA230FN-HNI">
+    <option value="DH-SD6ALA230FN-HNI">
+    <option value="DH-SD40A212TN-HNI">
+    <option value="DH-SD42A212TN-HNI">
+    <option value="DH-SD42CA212TN-HNI">
+    <option value="DH-SD59A230TN-HNI">
+    <option value="DH-SD6CA230TN-HNI">
+    <option value="DH-SD50A230TN-HNI">
+    <option value="50430UNI">
+    <option value="52C430UNI">
+    <option value="59430UNI">
+    <option value="6AE530UNI">
+    <option value="6C430UNI">
+    <option value="59230UNI">
+    <option value="6CE230UNI">
+    <option value="6AL245UNI">
+    <option value="52C230UNI-A">
+    <option value="50230UNI-A">
+    <option value="6AE830VNI">
+    <option value="6AE240VNI">
+    <option value="12203TNI">
+    <option value="1A203TNI">
+    <option value="22204TNI">
+    <option value="40212IC">
+    <option value="49225IC">
+    <option value="50230IC">
+    <option value="59230IC">
+    <option value="59430IC">
+    <option value="6C230IC">
+    <option value="A211K02">
+    <option value="A21BB02">
+    <option value="A21BB03">
+    <option value="A21BC0V">
+    <option value="A21BG02/A21BG03">
+    <option value="A21BH0V">
+    <option value="A21BL02">
+    <option value="A21BL03">
+    <option value="A21BM0V">
+    <option value="A21CC0Z">
+    <option value="A21CF02">
+    <option value="A21CG02">
+    <option value="A21CJ0Z">
+    <option value="A21CL02">
+    <option value="A21CM0Z">
+    <option value="A21CM0Z">
+    <option value="A22AC9Z">
+    <option value="A22AH9Z">
+    <option value="A22AM9Z">
+    <option value="A22BJ63">
+    <option value="A22BJ63">
+    <option value="A42AB22">
+    <option value="A42AB23">
+    <option value="A42AC2Z">
+    <option value="A42AC2Z">
+    <option value="A42AG22">
+    <option value="A42AG23">
+    <option value="A42AH2Z">
+    <option value="A42AL22">
+    <option value="A42AL23">
+    <option value="A42AM2Z">
+    <option value="A42AM2Z-B">
+    <option value="A42AR2">
+    <option value="A511K02">
+    <option value="A511K02-B">
+    <option value="A52AB62">
+    <option value="A52AF6Z">
+    <option value="A52AJ62">
+    <option value="A52AJ6Z">
+    <option value="A52AL42">
+    <option value="A52AM9Z">
+    <option value="A52AM9Z-B">
+    <option value="A82AF53">
+    <option value="A82AF5V">
+    <option value="A82AG52">
+    <option value="A82AH5V">
+    <option value="A82AM52">
+    <option value="A82AM5V">
+    <option value="A83AA9">
+    <option value="A83ABBZ">
+    <option value="A83ALBZ">
+    <option value="A83AR6">
+    <option value="DH_HAC_HDBW12A0EN">
+    <option value="DH-HAC-HDB1200FN-M">
+    <option value="DH-HAC-HDBW12A0RN-VF">
+    <option value="DH-HAC-HDBW2231FN-M">
+    <option value="DH-HAC-HDBW2241FN-M">
+    <option value="DH-HAC-HDBW22A1EN">
+    <option value="DH-HAC-HDBW22A1RN-Z">
+    <option value="DH-HAC-HDBW32A1EN-Z">
+    <option value="DH-HAC-HDW1220GN-M">
+    <option value="DH-HAC-HDW12A0EN">
+    <option value="DH-HAC-HDW12A0RN-VF">
+    <option value="DH-HAC-HDW22A1EN">
+    <option value="DH-HAC-HDW22A1RN-Z">
+    <option value="DH-HAC-HFW12A0RN-VF">
+    <option value="DH-HAC-HFW12A0SN">
+    <option value="DH-HAC-HFW22A1EN">
+    <option value="DH-HAC-HFW22A1RN-Z">
+    <option value="DH-HAC-HFW32A1EN-Z">
+    <option value="DH-HAC-HMW3200LN">
+    <option value="DH-HAC-HMW3200LN-F">
+    <option value="DH-HAC-HMW3200LN-FR">
+    <option value="DH-HAC-HMW3200N">
+    <option value="DH-HAC-HUM1220A-PIR">
+    <option value="DH-HAC-HUM1220GN">
+    <option value="DH-HAC-HUM1220GN-B">
+    <option value="DH-HAC-PFW3601N-A180">
+    <option value="DH-SD22A204IN-GC">
+    <option value="DH-IPC-HDBW4231FN-E2-M">
+    <option value="DH-IPC-PDBW5831N-B360">
+    <option value="DH-IPC-PDBW8800N-A180">
+    <option value="DH-IPC-PF83230N-A180">
+    <option value="DH-IPC-PFW8601N-H-A180">
+    <option value="DH-IPC-PFW8800N-A180">
+    <option value="DH-PSD81602N-A360">
+    <option value="DH-IPC-HDW8341XN-3D">
+    <option value="DH-IPC-HF8242FN-FR">
+    <option value="DH-IPC-EB54A0N	">
+    <option value="DH-IPC-EB55A0N">
+    <option value="DH-IPC-EBW81230N M12">
+    <option value="DH-IPC-EBW812A0N">
+    <option value="DH-IPC-EBW8630N M12">
+    <option value="DH-IPC-EBW86A0N">
+    <option value="N55BS5">
+    <option value="N68BR4">
+    <option value="N68BR4V">
+    <option value="NK8BR4">
+    <option value="DH-EPC230UN">
+    <option value="DH-EPC230UN-PTZ">
+    <option value="DH-TPC-BF5400N-B">
+    <option value="DH-TPC-BF5400N-TC">
+    <option value="DH-TPC-BF5600N-B">
+    <option value="DH-TPC-PT8420AN-B">
+    <option value="DH-TPC-PT8420AN-B100Z30">
+    <option value="DH-TPC-PT8420AN-B60Z30">
+    <option value="DH-TPC-PT8620AN-B">
+    <option value="DH-TPC-PT8620AN-B100Z30">
+    <option value="DH-TPC-PT8620AN-B60Z30">
+    <option value="DH-TPC-PT8620BN-B30150Z62">
+    <option value="DH-TPC-PT8620BN-B30150Z62">
+    <option value="DH-TPC-SD8420N-B">
+    <option value="DH-TPC-SD8420N-B25Z30">
+    <option value="DH-TPC-SD8420N-B50Z30">
+    <option value="DH-TPC-SD8620N-B">
+    <option value="DH-TPC-SD8620N-B25Z30">
+    <option value="DH-TPC-SD8620N-B50Z30">
+    <option value="DH-IPC-HDBW8232EN-Z-SL">
+    <option value="DH-SD60230UN-HNI-SL">
+    <option value="DH-SDZW2000TN-SL">
+    <option value="DH-SDZW2030UN-SL">
+    <option value="DH-EPC230UN">
+    <option value="DH-EPC230UN-PTZ">
+    <option value="DH-EPC230UN-PTZ-IR">
+    <option value="DH-IPC-HDBW8232EN-Z-SL">
+    <option value="DH-EPC230UN">
+    <option value="DH-EPC230UN-PTZ">
+    <option value="DH-EPC230UN-PTZ-IR">
+    <option value="DHI-ITC217-PW1B-IRLZ10">
+    <option value="DHI-ITC237-PU1B-IR">
+    <option value="DH-IPC-EBW81230N-M12">
+    <option value="DH-IPC-EBW8630N-M12">
+    <option value="DH-IPC-HDBW4231FN-E2-M">
+    <option value="DH-IPC-HDBW4231FN-E2-M12 2.8mm">
+    <option value="DH-IPC-HDBW4231FN-E2-M12 3.6mm">
+    <option value="DH-IPC-HDBW4431FN-M 2.8mm">
+    <option value="DH-IPC-HDBW4431FN-M12 2.8mm">
+    <option value="DH-IPC-HDBW4431FN-M12 3.6mm">
+    <option value="DH-IPC-MBW4431N-AS 3.6mm">
+    <option value="DH-IPC-MBW4431N-M12 2.8mm">
+    <option value="DH-IPC-MBW4431N-M12 3.6mm">
+    <option value="DHI-ITC237-PU1B-IR">
+    <option value="DHI-ITC237-PW1B-IRZ">
+    <option value="DHI-MPTZ1100-2030RA-NT">
+    <option value="ADT_XVR5x16HS">
+    <option value="DVR5104C">
+    <option value="DVR5108C">
+    <option value="DVR5116C">
+    <option value="DVR7804S-U">
+    <option value="DVR7808S-U">
+    <option value="DVR7816S-U">
+    <option value="DVRXX04-HF-A/L/U-E (XX could be 04, 08, 16)">
+    <option value="HCVR4104/08HS-ADT-x">
+    <option value="HCVR4116HS-ADT-x">
+    <option value="HDBW5231">
+    <option value="HFW4231">
+    <option value="IPC-HDBW4120E">
+    <option value="IPC-HDBW4220E">
+    <option value="IPC-HDBW4231">
+    <option value="IPC-HDBW4231E">
+    <option value="IPC-HDBW5220E-Z">
+    <option value="IPC-HDBW5231E-Z">
+    <option value="IPC-HDBW5421E-Z">
+    <option value="IPC-HFW4120E">
+    <option value="IPC-HFW4231E">
+    <option value="IPC-HFW5421E-Z">
+    <option value="NVR3204-P">
+    <option value="NVR3208-8P">
+    <option value="NVR3216-P">
+    <option value="NVR4204-P">
+    <option value="NVR4208-8P">
+    <option value="NVR4416-16P">
+    <option value="NVR4XXXX-XP-4KS2-XT-Alpha">
+    <option value="NVR6064">
+    <option value="NVR7416-16P">
+    <option value="NVR7416-16P-ADT-x">
+    <option value="SD22204T-GN ">
+    <option value="SD32203S-HN">
+    <option value="SD3282D-GN ">
+    <option value="XVR5104HS-ADT">
+    <option value="XVR5108HS-ADT">
+  </datalist>
+  <datalist id="distributorList">
+    <option value="Accu-Tech Corporation">
+    <option value="ADT">
+    <option value="ALARMAX DISTRIBUTORS INC.">
+    <option value="Alarm Devices Supply of RI, Inc">
+    <option value="Alarm Product Distributors / APD">
+    <option value="ALL CCTV supply, Inc">
+    <option value="Altex">
+    <option value="Amazon: Non Authorized">
+    <option value="Ameta West">
+    <option value="Anixter / Tri-ed">
+    <option value="APA">
+    <option value="Arlenco">
+    <option value="Accu-Tech Corporation">
+    <option value="ASAVING.COM">
+    <option value="A1 Security Supply">
+    <option value="Adorama">
+    <option value="Alarm Services Group">
+    <option value="Apple Store">
+    <option value="Argos">
+    <option value="ADI / Omega">
+    <option value="Alarm Devices Supply of RI, Inc">
+    <option value="ALL CCTV Supply, Inc.">
+    <option value="B&H">
+    <option value="Babies R us">
+    <option value="Best Buy">
+    <option value="BJ's">
+    <option value="BrandsMart">
+    <option value="B&H Photo">
+    <option value="Bass Computers">
+    <option value="Brooklyn Supply">
+    <option value="Brooklyn Supply/MKS Sales">
+    <option value="CCTV.Net / STS Labs">
+    <option value="City Electric Supply">
+    <option value="Canada Computers">
+    <option value="Canadian Tire">
+    <option value="CISCO">
+    <option value="COSTCO - Support By Lorex">
+    <option value="Canal Alarm Devices Inc">
+    <option value="Communications Supply Svc Assoc">
+    <option value="Communications Supply Corporate">
+    <option value="Custom Electronic Supply">
+    <option value="Crescent Electric Supply Company">
+    <option value="D. Viola Enterprises / ROC Supply">
+    <option value="Data">
+    <option value="Dealer">
+    <option value="Digital WatchGuard">
+    <option value="DSG Distributors">
+    <option value="D.W. Collins, Inc, DBA: AVX">
+    <option value="Deerfield Distributing Inc.">
+    <option value="DWG">
+    <option value="EBay: Non Authorized">
+    <option value="Esentia">
+    <option value="Electronic Supply Co.">
+    <option value="Electracom Supply Inc">
+    <option value="FLIR">
+    <option value="Fry’s Electronics">
+    <option value="Future Shop">
+    <option value="FOCUS CAMERA">
+    <option value="GLD Group, Inc.">
+    <option value="Gerrie Electric">
+    <option value="Global Surveillance Systems">
+    <option value="Graybar Canada">
+    <option value="Gift">
+    <option value="Gescan, Div of Sonepar Canada, Inc.">
+    <option value="Graybar Electric Company Inc.">
+    <option value="Home Depot">
+    <option value="Home Hardware">
+    <option value="Home Shopping Network">
+    <option value="Honeywell">
+    <option value="Harbour Freight">
+    <option value="ISTAGROUP Ltd.">
+    <option value="ITM Instruments Inc.">
+    <option value="JMG Security">
+    <option value="Kmart">
+    <option value="LeaderTech Systems of Chicago Inc.">
+    <option value="Lirio">
+    <option value="Low Voltage Direct">
+    <option value="Lorex Website: Support by Lorex">
+    <option value="Maplins">
+    <option value="Micro Center">
+    <option value="MicroTech">
+    <option value="Nedco">
+    <option value="Norfolk Wire - Richmond Inc">
+    <option value="Office Depot">
+    <option value="OnPoint Surveillance">
+    <option value="Other: Authorized (See Notes)">
+    <option value="Other: Non Authorized (See Notes)">
+    <option value="PSA Security Network">
+    <option value="P.C. Richard & Son">
+    <option value="Petra">
+    <option value="PriceSmart">
+    <option value="Professional Security Alliance">
+    <option value="Radio Shack">
+    <option value="Sam's Club">
+    <option value="Sears">
+    <option value="Smarthome">
+    <option value="Staples">
+    <option value="Security Data Supply, LLC">
+    <option value="Source PTI OpCo LLC">
+    <option value="Sektor Ltd">
+    <option value="ScanSource Inc">
+    <option value="Secure Vision">
+    <option value="Synergy Datacom Supply, Inc.">
+    <option value="State Electric Supply Company, Inc">
+    <option value="Staub Electronics Ltd">
+    <option value="System Distributors Inc">
+    <option value="Silmar Electronics Inc.">
+    <option value="Security Data Systems">
+    <option value="Security Equipment Supply, Inc / SES">
+    <option value="Target">
+    <option value="TigerDirect">
+    <option value="Toys R us">
+    <option value="The Systems Depot">
+    <option value="Tyco">
+    <option value="United Digital Technologies">
+    <option value="Van Meter, Inc.">
+    <option value="VideoVision">
+    <option value="Vigilence and Security">
+    <option value="Walmart">
+    <option value="Woot.com">
+    <option value="W.W. Grainger, Inc">
+    <option value="Watcher Products, Inc.">
+    <option value="Wesco">
+    <option value="Honeywell (OEM)">
+    <option value="Detech / Savvy tech (OEM)">
+    <option value="DH Vision (OEM)">
+    <option value="RTM Security (OEM)">
+    <option value="WINIC Technologies (OEM)">
+    <option value="GenIV Technology (OEM)">
+    <option value="Golf (OEM)">
+  </datalist>
+  <!-- .txt and .jsx extension used to workaround system limitations -->
+  <script src="js/jquery-3.3.1.slim.min.txt"></script>
+  <script src="js/bootstrap.min.txt"></script>
+  <script src="js/scripts.jsx"></script>
+</body>
+
+</html>
